@@ -14,7 +14,6 @@ Script para rodar as análises. Basta rodar no terminal com as amostras na mesma
 
 Para selecionar os parâmetros, modifique a seguinte seção do código:
 
->params_dados = {
 >        'resolucao':1000,
 >        'alfa': 0.0065, 
 >        'beta': 0.01,   
@@ -38,8 +37,7 @@ Para selecionar os parâmetros, modifique a seguinte seção do código:
 >        'min_F2': candidatos['F*2'].min(),    
 >        'max_F2': candidatos['F*2'].max(),   
 >        'a_dur': 90,   
->        'b_dur': 110    
->    }
+>        'b_dur': 110 
 
 A combinação de *a_F1, b_F1; a_F2, b_F2* é que compõe o candidato contínuo (F1,F2) da análise. 
 
