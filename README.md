@@ -67,7 +67,7 @@ Arquivo que contém os valores dos formantes (F1 e F2) analisados. Para entender
 
 ### GradiEnt_comentado.py:
 
-Versão mais completa do GradiEnt que gera uma grande quantidade de *plots* (alguns deles para *debugging* e muitos deles inúteis para uma análise, só servindo para apoio visual durante minha escrita da qualificação) e está amplamente comentado. Logo, é consideravelmente mais didático se sua intenção for compreender o que está embaixo do capô.
+**VERSÃO PARA DEBUGGING**. Versão do GradiEnt que gera uma grande quantidade de *plots* (para debugging, apoio visual durante modificações, etc -- muitos deles foram incorporados no texto de minha qualificação) e que está extensivamente comentado, o que pode ajudar o usuário a tirar dúvidas sobre o código.
 
 # Equações
 
