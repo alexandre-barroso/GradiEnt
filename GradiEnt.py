@@ -1,3 +1,5 @@
+# Criado por Alexandre M. Barroso em 2024
+
 import os
 import random
 import logging
