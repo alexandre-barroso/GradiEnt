@@ -84,4 +84,4 @@ $$\mathbf{KL}(p||q) = \int_{-\infty}^{\infty} p \log\left( \frac{p}{q} \right) \
 
 ## Licença
 
-Licença Pública Geral GNU (GPLv3) -- liberdade de compartilhar e alterar todas as versões, na garantia que ele permaneça livre para todos os usuários.
+Licença Pública Geral GNU (GPLv3) -- liberdade de compartilhar e alterar todas as versões desse script, na garantia que ele permaneça livre para todos os usuários.
