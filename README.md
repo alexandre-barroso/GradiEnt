@@ -1,7 +1,7 @@
 
 # GradiEnt (versão para qualificação)
 
-Script para análise fonológica de variáveis fonéticas contínuas. Desenvolvido em 2024 durante minha pesquisa de pós-graduação. A versão apresentada aqui foi concluída entre março e abril de 2024, com intenção de apresentá-la para qualificação do Mestrado.
+Script para análise fonológica de variáveis fonéticas contínuas. Desenvolvido em 2024 durante minha pesquisa de pós-graduação. A versão apresentada aqui foi concluída entre março e abril de 2024, com intenção de apresentá-la para qualificação do Mestrado no PPG em Linguistica da Universidade Estadual de Campinas.
 
 # Arquivos
 Este repositório contém 3 arquivos de importância:
