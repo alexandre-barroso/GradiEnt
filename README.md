@@ -25,7 +25,7 @@ Versão mais completa do GradiEnt que gera uma grande quantidade de *plots* (alg
 
 As principais equações que esse script roda são a restrição perceptual:
 
-$$R_{P}(F1) = L - \frac{L^2}{(1 + e^{k_1(F1 - F1_{\text{l}_{1}})})(1 + e^{-k_2(F1 - F1_{\text{l}_{2}})})}$$
+$$R_A(F1,F2) = \sqrt{(G_{F1} - A_{F1})^2 + (G_{F2} - A_{F2})^2} \cdot \frac{E_{\texttt{realizado}}}{E_{\texttt{esperado}}}$$
 
 A restrição articulatória:
 
