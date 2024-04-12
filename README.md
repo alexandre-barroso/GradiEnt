@@ -17,8 +17,8 @@ Para selecionar os parâmetros, modifique a seguinte seção do código:
 >        'resolucao':1000,
 >        'alfa': 0.0065, 
 >        'beta': 0.01,   
->        'alvo_F1': 421,  # ALVO F1 DA FUNÇÃO DA RESTRIÇÃO GESTUAL
->        'alvo_F2': 1887, # ALVO F2 DA FUNÇÃO DA RESTRIÇÃO GESTUAL
+>        'alvo_F1': 421,  # ALVO F1 DA FUNÇÃO DA RESTRIÇÃO ARTICULATÓRIA
+>        'alvo_F2': 1887, # ALVO F2 DA FUNÇÃO DA RESTRIÇÃO ARTICULATÓRIA
 >        'limiar_1': 600,    # F1 LIMIAR DA FUNÇÃO DA RESTRIÇÃO PERCEPTUAL
 >        'limiar_2': 345,    # F1 LIMIAR DA FUNÇÃO DA RESTRIÇÃO PERCEPTUAL
 >        'neutro_F1': 610,
