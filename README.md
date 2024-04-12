@@ -12,6 +12,36 @@ Script para rodar as análises. Basta rodar no terminal com as amostras na mesma
 
 > $ python3 GradiEnt.py
 
+Para selecionar os parâmetros, modifique a seguinte seção do código:
+
+>params_dados = {
+>        'resolucao':1000,
+>        'alfa': 0.0065, 
+>        'beta': 0.01,   
+>        'alvo_F1': 421,  # ALVO F1 DA FUNÇÃO DA RESTRIÇÃO GESTUAL
+>        'alvo_F2': 1887, # ALVO F2 DA FUNÇÃO DA RESTRIÇÃO GESTUAL
+>        'limiar_1': 600,    # F1 LIMIAR DA FUNÇÃO DA RESTRIÇÃO PERCEPTUAL
+>        'limiar_2': 345,    # F1 LIMIAR DA FUNÇÃO DA RESTRIÇÃO PERCEPTUAL
+>        'neutro_F1': 610,
+>        'neutro_F2': 1900,
+>        'dur': 100,  
+>        'L': 1,    # VARIÁVEL L (TETO DAS VIOLAÇÕES) DA RESTRIÇÃO PERCEPTUAL
+>        'k_1': 1,    # VARIÁVEL K (INCLINAÇÃO DO LIMIAR 1) DA RESTRIÇÃO PERCEPTUAL
+>        'k_2': 7,    # VARIÁVEL K (INCLINAÇÃO DO LIMIAR 2) DA RESTRIÇÃO PERCEPTUAL
+>        'gamma_rp': 0.1,  
+>        'a_F1': 450,    # LIMITE INFERIOR DA INTEGRAL DE F1 (MIN. - CANDIDATO F1)
+>        'b_F1': 543,    # LIMITE SUPERIOR DA INTEGRAL DE F1 (MAX. - CANDIDATO F1)
+>        'a_F2': 1700,   # LIMITE INFERIOR DA INTEGRAL DE F2 (MIN. - CANDIDATO F2)
+>        'b_F2': 1987,   # LIMITE SUPERIOR DA INTEGRAL DE F1 (MAX. - CANDIDATO F2)
+>        'min_F1': candidatos['F*1'].min(),   
+>        'max_F1': candidatos['F*1'].max(),     
+>        'min_F2': candidatos['F*2'].min(),    
+>        'max_F2': candidatos['F*2'].max(),   
+>        'a_dur': 90,   
+>        'b_dur': 110    
+>    }
+
+A combinação de *a_F1, b_F1; a_F2, b_F2* é que compõe o candidato contínuo (F1,F2) da análise. 
 
 ### amostras.txt:
 
