@@ -43,7 +43,7 @@ A combinação de *a_F1, b_F1; a_F2, b_F2* é que compõe o candidato contínuo 
 
 ### amostras.txt:
 
-Arquivo que contém os valores dos formantes (F1 e F2) analisados. Para entender melhor sua formatação, basta ler este arquivo e comparar com a função *ler_dados()* do GradiEnt, que filtra elementos pelo cabeçalho contendo palavras-chave.
+Arquivo que contém os valores dos formantes (F1 e F2) analisados. Para entender melhor sua formatação, basta ler este arquivo e comparar com a função *ler_dados()* do GradiEnt, que filtra elementos pelo cabeçalho contendo palavras-chave. Estando em formatação semelhante, você pode usar outros dados/arquivos.
 
 ### GradiEnt_comentado.py:
 
