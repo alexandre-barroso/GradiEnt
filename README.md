@@ -39,7 +39,13 @@ Para selecionar os parâmetros, modifique a seguinte seção do código:
 >        'a_dur': 90,   
 >        'b_dur': 110 
 
-A combinação de *a_F1, b_F1; a_F2, b_F2* é que compõe o candidato contínuo (F1,F2) da análise. No mais, caso você queira achar os pesos para seus próprios dados, você precisa habilitar (descomentar, remover o # inicial das linhas) a seguinte seção:
+A combinação de *a_F1, b_F1; a_F2, b_F2* é que compõe o candidato contínuo (F1,F2) da análise. No mais, caso você queira achar os pesos para seus próprios dados, você precisa desabilitar os pesos atuais (basta colocar um # na frente de cada linha):
+
+>        lambda_zero = 1.0277987671182454
+>        lambda_RA = 0.018088342454995333
+>        lambda_RP = 0.41709655507658977
+
+E, então, habilitar (descomentar, remover o # inicial das linhas) a seguinte seção:
 
 >        #otimizacao = minimize(otimizador.funcao_objetivo, lambdas_iniciais, method='L-BFGS-B', bounds=limites, options={'maxiter': 1000})
 >        #lambdas_otimizados = otimizacao.x
@@ -47,13 +53,13 @@ A combinação de *a_F1, b_F1; a_F2, b_F2* é que compõe o candidato contínuo 
 >        #lambda_RA = lambdas_otimizados[1]
 >        #lambda_RP = lambdas_otimizados[2]
 
-Isso faz com que o script rode o comando *minimize()* que busca os pesos ótimos que minimizam a divergência de Kullback-Leibler entre distribuição de máxima entropia e a distribuição estimada dos dados reais. No entanto, como isso é um procedimento que pode levar algum tempo, eu -- após realizar a otimização algumas vezes e confirmar o valor exato dos pesos das restrições -- passo os pesos como constantes, desabilitando a otimização e habilitando a seguinte seção:
+Isso faz com que o script rode o comando *minimize()* que busca os pesos ótimos que minimizam a divergência de Kullback-Leibler entre distribuição de máxima entropia e a distribuição estimada dos dados reais. No entanto, como isso é um procedimento que pode levar algum tempo, não é interessante manter a otimização permanentemente habilitada. Após você identificar os pesos das restrições para seus dados, basta desabilitar a otimização e habilitar novamente os pesos agora com seus valores:
 
->        lambda_zero = 1.0277987671182454
->        lambda_RA = 0.018088342454995333
->        lambda_RP = 0.41709655507658977
+>        lambda_zero = [substituir aqui pelo peso]
+>        lambda_RA = [substituir aqui pelo peso]
+>        lambda_RP = [substituir aqui pelo peso]
 
-Assim, você pode rodar o algoritmo algumas vezes, ver o valor dos pesos das restrições e depois desabilitar a otimização. Basta preencher os pesos manualmente. Isso te salva tempo, porque agora você pode rodar várias vezes para testar combinações de candidatos diferentes sem precisar passar pela etapa de otimização todas as vezes. É importante notar que isso só é possível porque a otimização não depende dos candidatos, ela depende dos dados em geral -- então, os pesos das restrições variam conforme o *set* de dados. Isso significa que só precisamos encontrar os pesos uma única vez (ou algumas, se formos bem rigorosos) por *set* de dados.
+Assim, você pode rodar o algoritmo algumas vezes, ver o valor dos pesos das restrições e depois desabilitar a otimização. Basta preencher os pesos manualmente. Isso te salva tempo, porque agora você pode rodar várias vezes para testar combinações de candidatos diferentes sem precisar passar pela etapa de otimização todas as vezes. É importante notar que isso só é possível porque a otimização não depende dos candidatos, ela depende dos dados em geral -- então, os pesos das restrições variam conforme o *set* de dados. Isso significa que só precisamos encontrar os pesos uma única vez (ou algumas, se formos bem rigorosos) por *set* de dados. 
 
 ### amostras.txt:
 
