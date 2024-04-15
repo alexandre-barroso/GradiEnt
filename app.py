@@ -1,6 +1,7 @@
 # Criado por Alexandre M. Barroso em 2024
 
 import os
+import sys
 import random
 import logging
 from datetime import datetime
@@ -27,29 +28,99 @@ plt.style.use(['science', 'ieee'])
 import cProfile
 import pstats
 import functools
+import argparse
 profiler = cProfile.Profile()
 profiler.enable()
 
+if len(sys.argv) == 1:
+    sys.argv.extend([
+        '--alvo_F1=421',
+        '--a_F1=250',
+        '--b_F1=543',
+        '--a_F2=908',
+        '--b_F2=1987',
+        '--limiar_1=600',
+        '--limiar_2=345',
+        '--L=1',
+        '--k_1=1',
+        '--k_2=7',
+        '--alvo_F1=421',
+        '--alvo_F2=1887',
+        '--neutro_F1=610',
+        '--neutro_F2=1900',
+        '--lambda_zero=1.027',
+        '--lambda_RP=0.417',
+        '--lambda_RA=0.018',
+        '--vogais=e',
+        '--caminho_do_arquivo=dados.txt'
+    ])
+
+
+def parse_parametros():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--otimizar', action='store_true', help="Enable optimization if this flag is set")
+    parser.add_argument('--alvo_F1', type=int, default=421)
+    parser.add_argument('--alvo_F2', type=int, default=1887)
+    parser.add_argument('--limiar_1', type=int, default=600)
+    parser.add_argument('--limiar_2', type=int, default=345)
+    parser.add_argument('--neutro_F1', type=int, default=610)
+    parser.add_argument('--neutro_F2', type=int, default=1900)
+    parser.add_argument('--L', type=int, default=1)
+    parser.add_argument('--k_1', type=int, default=1)
+    parser.add_argument('--k_2', type=int, default=7)
+    parser.add_argument('--a_F1', type=int, default=250)
+    parser.add_argument('--b_F1', type=int, default=543)
+    parser.add_argument('--a_F2', type=int, default=908)
+    parser.add_argument('--b_F2', type=int, default=1987)
+    parser.add_argument('--lambda_zero', type=float, default=1.027)
+    parser.add_argument('--lambda_RA', type=float, default=0.018)
+    parser.add_argument('--lambda_RP', type=float, default=0.417)
+    parser.add_argument('--vogais', type=str, default="e")
+    parser.add_argument('--entrevistados', type=str, default="1,3,5")
+    parser.add_argument('--caminho_do_arquivo', type=str, default="dados.txt")
+    args = parser.parse_args()
+    params_todos = vars(args)
+
+    args.vogais = args.vogais.split(',')
+    args.entrevistados = list(map(int, args.entrevistados.split(',')))
+
+    dados_keys = ['alvo_F1', 'alvo_F2', 'limiar_1', 'limiar_2', 'neutro_F1', 'neutro_F2',
+                  'L', 'k_1', 'k_2', 'a_F1', 'b_F1', 'a_F2', 'b_F2']
+
+    pesos_keys = ['lambda_zero', 'lambda_RA', 'lambda_RP']
+
+    otimizar = params_todos['otimizar']
+    params_arq = {'entrevistados': args.entrevistados, 'vogais': args.vogais, 'caminho_do_arquivo': args.caminho_do_arquivo}
+    params_dados = {k: params_todos[k] for k in dados_keys}
+    params_pesos = {k: params_todos[k] for k in pesos_keys}
+
+    return params_dados, params_pesos, otimizar, params_arq
+
+def definir_diretorio():
+    if getattr(sys, 'frozen', False):
+        os.chdir(sys._MEIPASS)
+    else:
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+definir_diretorio()
+
 def ler_dados(caminho_do_arquivo, vogais, entrevistados):
     dados = pd.read_csv(caminho_do_arquivo, sep=" ", quotechar='"', header=0)
-    dados = dados[(dados['F*1'] != 'NA') & (dados['F*2'] != 'NA')]
-    dados['F*1'] = pd.to_numeric(dados['F*1'])
-    dados['F*2'] = pd.to_numeric(dados['F*2'])
-    candidatos = dados[dados["Vowel"].isin(vogais) & dados["Speaker"].isin(entrevistados)].copy()
-    with open('candidatos.txt', 'w') as file:
-        for index, row in candidatos.iterrows():
-            file.write(f"{row['F*1']}, {row['F*2']}\n")
-    return candidatos[['F*1', 'F*2']]
+    dados = dados[(dados['F1'] != 'NA') & (dados['F2'] != 'NA')]
+    dados['F1'] = pd.to_numeric(dados['F1'])
+    dados['F2'] = pd.to_numeric(dados['F2'])
+    candidatos = dados[dados["Vogal"].isin(vogais) & dados["Falante"].isin(entrevistados)].copy()
+    return candidatos[['F1', 'F2']]
 
 def calcular_kde(dados, largura=0.2):
-    print('\nEstimando valores para FDP...')
+    print('\nCalculando valores para a f.d.p. dos dados...')
     scaler = StandardScaler()
-    valores = np.vstack([dados['F*1'], dados['F*2']]).T
+    valores = np.vstack([dados['F1'], dados['F2']]).T
     valores_normalizados = scaler.fit_transform(valores)
     kde = gaussian_kde(valores_normalizados.T, bw_method=largura)
     limits = [(-np.inf, np.inf), (-np.inf, np.inf)]
     integral, error = nquad(lambda x, y: kde(np.vstack([x, y])), limits)
-    print(f"\nChecagem do integral da FDP: {integral}")
+    print(f"\nChecagem do integral da f.d.p.: {integral}")
     if not np.isclose(integral, 1, atol=1e-3):
         print('   |')
         print("   |--> Valores EDK não estão normalizados.")
@@ -81,7 +152,7 @@ def criar_fdp_marginal(kde, params):
 def arquivo_EDK(kde, params, degrau=0.5):
     limite_F1 = (params['min_F1'], params['max_F1'])
     limite_F2 = (params['min_F2'], params['max_F2'])
-    with open('valores_EDK.txt', 'w') as file:
+    with open('amostra_valores.txt', 'w') as file:
         file.write("F1, F2, Valor EDK\n")
         for F1 in np.arange(limite_F1[0], limite_F1[1], degrau):
             for F2 in np.arange(limite_F2[0], limite_F2[1], degrau):
@@ -272,8 +343,6 @@ def criar_fdps(fdp_marginalizada, lambda_zero, lambda_RA, lambda_RP, kde, params
     print('Integral FDP MaxEnt pós-normalização:', integral_maxent_posn)
     integral_kde_posn = np.sum(valores_kde) * dx * dy
     print('Integral FDP dos dados pós-normalização:', integral_kde_posn)
-    np.savetxt('maxent_fdp.array', valores_maxent)
-    np.savetxt('kde_fdp.array', valores_kde)
     return valores_maxent, valores_kde
 
 def verificacao_fdps(valores_maxent, valores_kde_dimensionados, params):
@@ -377,6 +446,7 @@ class OtimizadorKL:
         divergencia_kl = kullback_leibler(valores_maxent, valores_kde, self.params)
         print('\n-----> Divergência KL:', divergencia_kl)
         return divergencia_kl
+
 def extrair_probabilidades(valores_maxent, params, scaler):
     print('\n----')
     min_F1, max_F1 = params['min_F1'], params['max_F1']
@@ -395,56 +465,42 @@ def extrair_probabilidades(valores_maxent, params, scaler):
     indices_F1 = np.logical_and(grade_F1 >= a_F1, grade_F1 <= b_F1)
     indices_F2 = np.logical_and(grade_F2 >= a_F2, grade_F2 <= b_F2)
     relevant_valores_maxent = valores_maxent[np.ix_(indices_F1, indices_F2)]
-    joint_prob = np.trapz(np.trapz(relevant_valores_maxent, dx=dx, axis=1), dx=dy)
+    prob_conjunta = np.trapz(np.trapz(relevant_valores_maxent, dx=dx, axis=1), dx=dy)
     prob_F1 = np.trapz(marginal_F1_fdp_normalized[indices_F1], dx=dx)
     prob_F2 = np.trapz(marginal_F2_fdp_normalized[indices_F2], dx=dy)
-    print(f"Probabilidade conjunta F1, F2: {joint_prob:.9f}")
+    print(f"Probabilidade conjunta F1, F2: {prob_conjunta:.9f}")
     print(f"Probabilidade F1: {prob_F1:.12f}")
     print(f"Probabilidade F2: {prob_F2:.12f}")
     print('----')
-    return
+    return prob_conjunta, prob_F1, prob_F2
 
-caminho_do_arquivo = 'amostras.txt'
+params_dados, params_pesos, otimizar, params_arq = parse_parametros()
+entrevistados = params_arq['entrevistados']
+vogais = params_arq['vogais']
+caminho_do_arquivo = params_arq['caminho_do_arquivo']
 
-vogais = ['e']
-entrevistados = [1,3,5]
 candidatos = ler_dados(caminho_do_arquivo, vogais, entrevistados)
 
-print('\nArquivo de texto lido com sucesso.')
+print('\nArquivo lido com sucesso:', caminho_do_arquivo)
+
+print('\nFalante(s) selecionado(s):', entrevistados)
+
+print('\nVogal(is) selecionada(s):', vogais)
+
 
 largura_customizada = 0.15
 largura_scott = 'scott'
 largura_silverman = 'silverman'
 kde, scaler = calcular_kde(candidatos)
 
-print('\nOs valores para a FDP foram estimados por EDK com sucesso.')
+print('\nOs valores para a f.d.p. foram estimados por EDK com sucesso.')
 
-params_dados = {
-        'resolucao':1000,
-        'alfa': 0.0065,
-        'beta': 0.01,
-        'alvo_F1': 421,
-        'alvo_F2': 1887,
-        'limiar_1': 600,
-        'limiar_2': 345,
-        'neutro_F1': 610,
-        'neutro_F2': 1900,
-        'dur': 100,
-        'L': 1,
-        'k_1': 1,
-        'k_2': 7,
-        'gamma_rp': 0.1,
-        'a_F1': 450,
-        'b_F1': 543,
-        'a_F2': 1700,
-        'b_F2': 1987,
-        'min_F1': candidatos['F*1'].min(),
-        'max_F1': candidatos['F*1'].max(),
-        'min_F2': candidatos['F*2'].min(),
-        'max_F2': candidatos['F*2'].max(),
-        'a_dur': 90,
-        'b_dur': 110
-    }
+params_dados['resolucao'] = 1000
+params_dados['min_F1'] = min(candidatos['F1'])
+params_dados['max_F1'] = max(candidatos['F1'])
+params_dados['min_F2'] = min(candidatos['F2'])
+params_dados['max_F2'] = max(candidatos['F2'])
+
 params_normalizados = {
     'resolucao':params_dados['resolucao'],
     'alvo_F1': scaler.transform([[params_dados['alvo_F1'], 0]])[0][0],
@@ -461,41 +517,29 @@ params_normalizados = {
     'b_F2': scaler.transform([[0, params_dados['b_F2']]])[0][1],
     'min_F2': scaler.transform([[0, params_dados['min_F2']]])[0][1],
     'max_F2': scaler.transform([[0, params_dados['max_F2']]])[0][1],
-    'alfa': params_dados['alfa'],
-    'beta': params_dados['beta'],
-    'dur': params_dados['dur'],
     'L': params_dados['L'],
     'k_1': params_dados['k_1'],
     'k_2': params_dados['k_2'],
-    'gamma_rp': params_dados['gamma_rp'],
-    'a_dur': params_dados['a_dur'],
-    'b_dur': params_dados['b_dur']
 }
 params_ref = {
         'resolucao':params_dados['resolucao'],
-        'alfa': params_dados['alfa'],
-        'beta': params_dados['beta'],
         'alvo_F1': params_dados['alvo_F1'],
         'alvo_F2': params_dados['alvo_F2'],
         'limiar_1': params_dados['limiar_1'],
         'limiar_2': params_dados['limiar_2'],
         'neutro_F1': params_dados['neutro_F1'],
         'neutro_F2': params_dados['neutro_F2'],
-        'dur': params_dados['dur'],
         'L': params_dados['L'],
         'k_1': params_dados['k_1'],
         'k_2': params_dados['k_2'],
-        'gamma_rp': params_dados['gamma_rp'],
-        'a_F1': candidatos['F*1'].min(),
-        'b_F1': candidatos['F*1'].max(),
-        'a_F2': candidatos['F*2'].min(),
-        'b_F2': candidatos['F*2'].max(),
-        'min_F1': candidatos['F*1'].min(),
-        'max_F1': candidatos['F*1'].max(),
-        'min_F2': candidatos['F*2'].min(),
-        'max_F2': candidatos['F*2'].max(),
-        'a_dur': params_dados['a_dur'],
-        'b_dur': params_dados['b_dur']
+        'a_F1': candidatos['F1'].min(),
+        'b_F1': candidatos['F1'].max(),
+        'a_F2': candidatos['F2'].min(),
+        'b_F2': candidatos['F2'].max(),
+        'min_F1': candidatos['F1'].min(),
+        'max_F1': candidatos['F1'].max(),
+        'min_F2': candidatos['F2'].min(),
+        'max_F2': candidatos['F2'].max(),
     }
 params_normalizados_ref = {
     'resolucao':1000,
@@ -513,61 +557,52 @@ params_normalizados_ref = {
     'b_F2': scaler.transform([[0, params_ref['b_F2']]])[0][1],
     'min_F2': scaler.transform([[0, params_ref['min_F2']]])[0][1],
     'max_F2': scaler.transform([[0, params_ref['max_F2']]])[0][1],
-    'alfa': params_ref['alfa'],
-    'beta': params_ref['beta'],
-    'dur': params_ref['dur'],
     'L': params_ref['L'],
     'k_1': params_ref['k_1'],
     'k_2': params_ref['k_2'],
-    'gamma_rp': params_ref['gamma_rp'],
-    'a_dur': params_ref['a_dur'],
-    'b_dur': params_ref['b_dur']
     }
 
 arquivo_EDK(kde, params_normalizados_ref)
 
-print('\nArquivo com valores da FDP foi criado.')
+print('\nArquivo com amostra de valores normalizados e da f.d.p. foi criado.')
 
 fdp_marginalizada = criar_fdp_marginal(kde, params_normalizados_ref)
 
-print('\nFDP marginalizada foi criada.')
+print('\nF.d.p. marginalizada foi criada.')
 
 entropia = entropia_diferencial(kde, params_normalizados_ref)
-
-print('\nInício dos cálculos:')
 
 SLSQP = 'SLSQP'
 BFGS = 'BFGS'
 COBYLA = 'COBYLA'
 L_BFGS_B = 'L-BFGS-B'
 
-print('\nInicializando otimização...')
-
 otimizador = OtimizadorKL(kde, params_normalizados_ref)
 lambdas_iniciais = [1, 1, 1]
 limites = Bounds([1e-8, 1e-8, 1e-8], [np.inf, np.inf, np.inf])
 
-print('\nLambdas iniciais:', lambdas_iniciais)
+if otimizar:
+    print('\nInicializando otimização...')
+    otimizacao = minimize(otimizador.funcao_objetivo, lambdas_iniciais, method='L-BFGS-B', bounds=limites, options={'maxiter': 1000})
+    lambdas_otimizados = otimizacao.x
+    lambda_zero = lambdas_otimizados[0]
+    lambda_RA = lambdas_otimizados[1]
+    lambda_RP = lambdas_otimizados[2]
+    print('\nOtimização concluída com sucesso.')
 
-### Descomentar para otimizar:
-#otimizacao = minimize(otimizador.funcao_objetivo, lambdas_iniciais, method='L-BFGS-B', bounds=limites, options={'maxiter': 1000})
-#lambdas_otimizados = otimizacao.x
-#lambda_zero = lambdas_otimizados[0]
-#lambda_RA = lambdas_otimizados[1]
-#lambda_RP = lambdas_otimizados[2]
-
-### Transformar em comentário se for otimizar:
-lambda_zero = 1.0277987671182454
-lambda_RA = 0.018088342454995333
-lambda_RP = 0.41709655507658977
+else:
+    lambda_zero = params_pesos['lambda_zero']
+    lambda_RA = params_pesos['lambda_RA']
+    lambda_RP = params_pesos['lambda_RP']
+    print('\nValores de lambda foram especificados.')
 
 print('\n----')
-print('Lambdas otimizados:')
-print('0. Lambda relativo à normalização do MaxEnt:', lambda_zero)
-print('1. Lambda (peso) da restrição perceptual:', lambda_RP)
-print('2. Lambda (peso) da restrição articulatória:', lambda_RA)
+print('Pesos (lambdas) das restrições:')
+print('0. Peso relativo à normalização do MaxEnt:', lambda_zero)
+print('1. Peso da restrição perceptual:', lambda_RP)
+print('2. Peso da restrição articulatória:', lambda_RA)
 print('----')
-print('\nOtimização concluída com sucesso.')
+
 
 valor_integral_fdp = integral_fdp(kde, params_normalizados_ref)
 violacoes_ra = integral_ra(kde, params_normalizados)
@@ -583,14 +618,17 @@ violacoes_rp_normalizado = violacoes_rp_pesadas * 100/violacoes_rp_total_pesadas
 
 print('\n----')
 print('Candidato:')
-print('F1 (a,b):', params_dados['a_F1'], 'até', params_dados['b_F1'])
-print('F2 (a,b):', params_dados['a_F2'], 'até', params_dados['b_F2'])
+print('F1:', params_dados['a_F1'], 'até', params_dados['b_F1'])
+print('F2:', params_dados['a_F2'], 'até', params_dados['b_F2'])
 print('----')
-print('\nCálculo das violações...')
-print('\nViolações de RA:', violacoes_ra_pesadas)
-print('Que representa a parcela das violações totais possíveis (0-100):', violacoes_ra_normalizado)
+
+print('\nCalculando violações...')
+
 print('\nViolações de RP:', violacoes_rp_pesadas)
 print('Que representa a parcela das violações totais possíveis (0-100):', violacoes_rp_normalizado)
+print('\nViolações de RA:', violacoes_ra_pesadas)
+print('Que representa a parcela das violações totais possíveis (0-100):', violacoes_ra_normalizado)
+
 print('\nViolações totais possíveis de RA:', violacoes_ra_total_pesadas)
 print('Violações totais possíveis de RP:', violacoes_rp_total_pesadas)
 
@@ -598,9 +636,11 @@ estabilidade = escore_estabilidade(kde, scaler, fdp_marginalizada, params_normal
 soma_violacoes = violacoes_ra_pesadas + violacoes_rp_pesadas
 soma_violacoes_norm = (violacoes_ra_pesadas + violacoes_rp_pesadas) * 100 / (violacoes_ra_total_pesadas + violacoes_rp_total_pesadas)
 
-print('\nCálculo da harmonia e estabilidade...')
-print('\nEstabilidade (desconsiderar se calculado em cima de todos os dados):', estabilidade)
+print('\nCalculando harmonia e estabilidade...')
+print('\nEstabilidade:', estabilidade)
 print('Escore harmônico:', soma_violacoes)
+
+print('\nCalculando distribuição de probabilidade de máxima entropia...')
 
 f_maxent_normalizado = calculo_maxent(fdp_marginalizada, lambda_zero, lambda_RA, lambda_RP, kde, params_normalizados_ref)
 fdp_maxent_formatada, fdp_dados_formatada = criar_fdps(fdp_marginalizada, lambda_zero, lambda_RA, lambda_RP, kde, params_normalizados_ref)
@@ -612,42 +652,43 @@ divergencia_kl = kullback_leibler(fdp_maxent_formatada, fdp_dados_formatada, par
 
 print("\nValor da divergência de Kullback-Leibler:", divergencia_kl)
 
-extrair_probabilidades(fdp_maxent_formatada, params_normalizados, scaler)
+prob_conjunta, prob_F1, prob_F2 = extrair_probabilidades(fdp_maxent_formatada, params_normalizados, scaler)
 
 def gerar_relatorio(caminho_do_arquivo, vogais, entrevistados, largura_customizada, valor_integral_fdp,
                     violacoes_ra, violacoes_rp, violacoes_ra_total, violacoes_rp_total,
-                    violacoes_ra_normalizado, violacoes_rp_normalizado, estabilidade,
-                    entropia, divergencia_kl):
+                    violacoes_ra_normalizado, violacoes_rp_normalizado, estabilidade, soma_violacoes,
+                    entropia, divergencia_kl, prob_conjunta, prob_F1, prob_F2, a_F1, a_F2, b_F1, b_F2,
+                    lambda_zero, lambda_RA, lambda_RP):
+
     with open('relatorio.txt', 'w', encoding='utf-8') as arquivo:
         arquivo.write("Relatório\n")
         arquivo.write("------------------------------------------------\n\n")
-        arquivo.write("Arquivo\n")
         arquivo.write(f"Arquivo utilizado: {caminho_do_arquivo}\n\n")
-        arquivo.write("Dados utilizados\n")
-        arquivo.write(f"Vogais: {vogais}\n")
-        arquivo.write(f"Entrevistados: {entrevistados}\n\n")
-        arquivo.write("Integral da EDK\n")
-        arquivo.write(f"Largura EDK: {largura_customizada}\n")
-        arquivo.write(f"Valor da integral da EDK: {valor_integral_fdp}\n\n")
-        arquivo.write("Distância Euclidiana Máxima para Normalização de RA\n")
-        arquivo.write(f"Normalizador RA: \n\n")
-        arquivo.write("Violações da Seção Analisada\n")
-        arquivo.write(f"Violações RA: {violacoes_ra}\n")
-        arquivo.write(f"Violações RP: {violacoes_rp}\n\n")
-        arquivo.write("Violações Totais dos Dados\n")
-        arquivo.write(f"Violações RA total: {violacoes_ra_total}\n")
-        arquivo.write(f"Violações RP total: {violacoes_rp_total}\n\n")
-        arquivo.write("Violações Normalizadas\n")
-        arquivo.write(f"Violações RA normalizadas (0-100): {violacoes_ra_normalizado}\n")
-        arquivo.write(f"Violações RP normalizadas (0-100): {violacoes_rp_normalizado}\n\n")
-        arquivo.write("Escore Harmônico (somatória das restrições, depois integração)\n")
-        arquivo.write(f"Escore harmônico (cálculo conjunto): {estabilidade}\n")
-        arquivo.write("Entropia Diferencial\n")
-        arquivo.write(f"Valor da entropia diferencial dos dados: {entropia}\n\n")
-        arquivo.write("Divergência Kullback-Leibler\n")
-        arquivo.write(f"Divergência KL dos dados: {divergencia_kl}\n\n")
+        arquivo.write(f"Vogal(is): {vogais}\n")
+        arquivo.write(f"Falante(s): {entrevistados}\n\n")
+        arquivo.write(f'F1: {a_F1} até {b_F1}\n')
+        arquivo.write(f'F2: {a_F2} até {b_F2}\n\n')
+        arquivo.write(f'Peso da restrição perceptual (RP): {lambda_RP}\n')
+        arquivo.write(f'Peso da restrição articulatória (RA): {lambda_RA}\n\n')
+        arquivo.write(f"Violações da RP: {violacoes_rp}\n")
+        arquivo.write(f"Violações da RA: {violacoes_ra}\n\n")
+        arquivo.write(f"Escore harmônico: {soma_violacoes}\n")
+        arquivo.write(f"Estabilidade: {estabilidade}\n\n")
+        arquivo.write(f"Probabilidade F1: {prob_F1}\n")
+        arquivo.write(f"Probabilidade F2: {prob_F2}\n")
+        arquivo.write(f"Probabilidade conjunta F1 e F2: {prob_conjunta}\n\n")
+        arquivo.write(f"Divergência KL (modelo vs. dados): {divergencia_kl}\n\n")
+
 gerar_relatorio(caminho_do_arquivo, vogais, entrevistados, largura_customizada, valor_integral_fdp,
-                violacoes_ra, violacoes_rp, violacoes_ra_total, violacoes_rp_total,
-                violacoes_ra_normalizado, violacoes_rp_normalizado, estabilidade,
-                entropia, divergencia_kl)
-print('\nArquivo de relatório gerado.')
+                violacoes_ra_pesadas, violacoes_rp_pesadas, violacoes_ra_total, violacoes_rp_total,
+                violacoes_ra_normalizado, violacoes_rp_normalizado, estabilidade, soma_violacoes,
+                entropia, divergencia_kl, prob_conjunta, prob_F1, prob_F2, params_dados['a_F1'], params_dados['a_F2'],
+                    params_dados['b_F1'], params_dados['b_F2'], lambda_zero, lambda_RA, lambda_RP)
+
+print('\nArquivo de relatório gerado e análise concluída.')
+
+if __name__ == "__main__":
+    args = parse_pesos()
+    print(f"Lambda Zero: {args.lambda_zero}")
+    print(f"Lambda RA: {args.lambda_RA}")
+    print(f"Lambda RP: {args.lambda_RP}")
