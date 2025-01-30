@@ -136,7 +136,7 @@ source venv/bin/activate
 
 3. Install required dependencies:
 ```bash
-pip install numpy pandas scipy matplotlib pillow scienceplots sklearn tqdm
+pip install numpy pandas scipy matplotlib pillow scienceplots scikit-learn tqdm
 ```
 
 ### Data Preparation
