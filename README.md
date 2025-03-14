@@ -27,7 +27,6 @@ The system consists of two main components:
    - Handles data preprocessing and normalization
    - Calculates constraint violations and harmonies
    - Performs optimization of constraint weights
-   - Generates visualizations and analysis reports
 
 2. **Graphical Interface** (`ui.py`):
    - Provides an accessible interface for linguists
