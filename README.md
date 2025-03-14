@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository contains a suite of Python scripts implementing the GradiEnt methodology, an approach to analyzing continuous phonetic variables using Optimality Theory frameworks. GradiEnt (Gradient + Entropy) aims to bridge the gap between discrete phonological categories and continuous phonetic phenomena by providing a mathematical framework for analyzing continuous variables without discretization. Currently under development as a research project, by Alexandre M. Barroso @ IEL/UNICAMP, 2024.
+This repository contains a suite of Python scripts implementing the GradiEnt methodology, an approach to analyzing continuous phonetic variables using Optimality Theory frameworks. GradiEnt (Gradient + Entropy) aims to bridge the gap between discrete phonological categories and continuous phonetic phenomena by providing a mathematical framework for analyzing continuous variables without discretization. Currently under development as a research project, by Alexandre M. Barroso @ IEL/UNICAMP, 2024-2025.
 
 ### Theoretical Foundations
 
@@ -40,7 +40,6 @@ The system consists of two main components:
 - **Continuous Analysis**: Analyzes F1/F2 formant data without discretization
 - **Constraint-Based Grammar**: Implements continuous versions of Optimality Theory constraints
 - **Maximum Entropy Framework**: Uses differential entropy for continuous probabilistic modeling
-- **Data Visualization**: Generates multiple visualization types for analysis results
 - **Statistical Validation**: Includes KL divergence calculations for model evaluation
 - **Parameter Optimization**: Implements L-BFGS algorithm for constraint weight optimization
 
@@ -87,18 +86,6 @@ The optimization process minimizes the Kullback-Leibler divergence between the e
 $KL(p||q) = \int_{-\infty}^{\infty} p \log(\frac{p}{q}) dx$
 
 Where $p$ is the empirical distribution and $q$ is the MaxEnt distribution derived from the constraints.
-
-## Technical Features
-
-- **Data Normalization**: Uses StandardScaler for formant normalization
-- **Optimization**: Implements L-BFGS-B algorithm for weight optimization
-- **Multi-threading**: Supports parallel processing for computation
-- **Error Handling**: Comprehensive error checking and validation
-- **File I/O**: Generates multiple output files including:
-  - Analysis reports
-  - Data samples
-  - Visualization plots
-  - MaxEnt calculations
 
 ## Dependencies
 
@@ -189,11 +176,6 @@ The analysis generates several output files:
 - `relatorio.txt`: Detailed analysis report
 - `amostra_valores.txt`: KDE sample values
 - `valores_MaxEnt.txt`: MaxEnt distribution values
-- Various `.png` files for different visualizations:
-  - `MaxEnt_Dados_F1.png`/`F2.png`: Distribution comparisons
-  - `KL_F1.png`/`F2.png`: Kullback-Leibler divergence plots
-  - `violacoes_RA.png`/`RP.png`: Restriction violation plots
-  - And more visualization outputs
 
 ## Technical Details
 
@@ -223,7 +205,6 @@ The suite includes an optimization framework that can automatically determine op
 
 - The current version of this script is designed for analyzing bivariate distributions with specific focus on F1/F2 parameters
 - Supports both manual parameter configuration and automated optimization
-- Generates publication-ready visualizations (with a few tweaks needed, of course)
 - Provides detailed progress feedback during analysis
 
   GradiEnt is an academic project developed at the State University of Campinas (UNICAMP), Institute of Language Studies (IEL), by Alexandre Menezes Barroso.
