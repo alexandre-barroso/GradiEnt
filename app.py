@@ -1,4 +1,4 @@
-# Criado por Alexandre M. Barroso em 2024
+# Criado por Alexandre M. Barroso em 2024-2025
 
 import os
 import sys
